@@ -1,0 +1,76 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Message {
+  id       String   @id @default(uuid())
+  content  String
+  // time message was sent
+  timeSent DateTime @default(now())
+  likes    Int      @default(0)
+
+  userId String
+  chatId String
+
+  // every message is sent in a chat
+  chat   Chat @relation(fields: [chatId], references: [id])
+  // and every message is sent by a user
+  sentBy User @relation(fields: [userId], references: [id])
+}
+
+model Chat {
+  id          String  @id @default(uuid())
+  // name only applies for groupchat if someone decides to set it
+  name        String?
+  isGroupchat Boolean
+
+  // a chat has many messages
+  messages Message[]
+  // and a chat can have many members
+  members  ChatMembers[]
+}
+
+// create a 3rd table for n-n relationship between users and chats
+model ChatMembers {
+  id    String  @id @default(uuid())
+  // to see whether the current user in the current chat is an admin
+  admin Boolean
+
+  // if a user decides to delete a chat, it will not show in their feed anymore, so we use a boolean to check whether we should show the current conversation to the user
+  showConversation Boolean @default(true)
+  // a user can mute a chat
+  chatMuted        Boolean
+
+  // a specific user 
+  user   User   @relation(fields: [userId], references: [id])
+  // and a specific chat
+  chat   Chat   @relation(fields: [chatId], references: [id])
+  userId String
+  chatId String
+}
+
+model User {
+  id       String  @id @default(uuid())
+  email    String?
+  username String
+  password String
+
+  // user profile settings
+  profilePic         String? @default("https://t4.ftcdn.net/jpg/00/64/67/63/360_F_64676383_LdbmhiNM6Ypzb3FM4PPuFP9rHe7ri8Ju.jpg")
+  allowNotifications Boolean @default(true)
+  bio                String?
+  publicName         String?
+
+  // every user can send many messages
+  messages Message[]
+  // and be part of many chats
+  chats    ChatMembers[]
+}

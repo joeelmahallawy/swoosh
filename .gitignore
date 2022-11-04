@@ -27,6 +27,8 @@ yarn-error.log*
 
 # local env files
 .env*.local
+# TODO: make sure to change this when deploying to production OR add connection URL as environment variable in Railway
+.env
 
 # vercel
 .vercel
